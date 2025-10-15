@@ -19,6 +19,7 @@ class CustomUserDetailsService(
         
         return UserPrincipal(
             id = user.id,
+            userUsername = user.username,
             email = user.email,
             userPassword = user.password,
             userAuthorities = listOf(SimpleGrantedAuthority("ROLE_${user.role.name}")),
@@ -29,6 +30,7 @@ class CustomUserDetailsService(
 
 class UserPrincipal(
     val id: Long,
+    val userUsername: String,
     val email: String,
     private val userPassword: String,
     private val userAuthorities: Collection<SimpleGrantedAuthority>,
@@ -39,7 +41,7 @@ class UserPrincipal(
     
     override fun getPassword(): String = userPassword
     
-    override fun getUsername(): String = email
+    override fun getUsername(): String = userUsername
     
     override fun isAccountNonExpired(): Boolean = true
     

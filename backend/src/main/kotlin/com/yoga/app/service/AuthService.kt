@@ -29,10 +29,11 @@ class AuthService(
         }
         
         val user = User(
+            username = request.username,
             email = request.email,
             password = passwordEncoder.encode(request.password),
             name = request.name,
-            role = UserRole.TRAINER
+            role = request.role
         )
         
         val savedUser = userRepository.save(user)

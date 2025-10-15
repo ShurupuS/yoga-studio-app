@@ -1,5 +1,6 @@
 package com.yoga.app.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.yoga.app.entity.UserRole
 import java.time.LocalDateTime
 
@@ -9,9 +10,11 @@ data class LoginRequest(
 )
 
 data class RegisterRequest(
+    val username: String,
     val email: String,
     val password: String,
-    val name: String
+    val name: String,
+    val role: UserRole
 )
 
 data class AuthResponse(
@@ -21,6 +24,7 @@ data class AuthResponse(
 
 data class UserDto(
     val id: Long,
+    val username: String,
     val email: String,
     val name: String,
     val role: UserRole,
@@ -31,6 +35,7 @@ data class UserDto(
         fun from(user: com.yoga.app.entity.User): UserDto {
             return UserDto(
                 id = user.id,
+                username = user.username,
                 email = user.email,
                 name = user.name,
                 role = user.role,
