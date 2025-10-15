@@ -100,7 +100,7 @@ curl http://your-server-ip:18080/actuator/health
 ### 5.1 Просмотр логов приложения
 ```bash
 # На VPS
-docker-compose -f /opt/yoga-studio/docker-compose.lightweight.yml logs -f app
+docker-compose logs -f app
 ```
 
 ### 5.2 Мониторинг здоровья
@@ -112,7 +112,7 @@ tail -f /opt/yoga-studio/logs/health.log
 ### 5.3 Статус сервисов
 ```bash
 # На VPS
-docker-compose -f /opt/yoga-studio/docker-compose.lightweight.yml ps
+docker-compose ps
 ```
 
 ## 🔄 Workflow файлы
@@ -146,13 +146,13 @@ docker-compose -f /opt/yoga-studio/docker-compose.lightweight.yml ps
 cd /opt/yoga-studio
 git log --oneline  # Найдите нужный коммит
 git checkout <commit-hash>
-docker-compose -f docker-compose.lightweight.yml up -d --build
+docker-compose up -d --build
 ```
 
 ### Остановка сервисов
 ```bash
 # На VPS
-docker-compose -f /opt/yoga-studio/docker-compose.lightweight.yml down
+docker-compose down
 ```
 
 ## 🚨 Устранение проблем

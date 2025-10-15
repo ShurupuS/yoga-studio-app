@@ -23,7 +23,7 @@ jobs:
         
     - name: Build Docker image
       run: |
-        docker build -f backend/Dockerfile.lightweight -t yoga-app:latest ./backend
+        docker build -f backend/Dockerfile -t yoga-app:latest ./backend
         
     - name: Save Docker image
       run: |
@@ -44,7 +44,7 @@ jobs:
           git pull origin main
           
           # Stop existing services
-          docker-compose -f docker-compose.lightweight.yml down || true
+          docker-compose down || true
           
           # Clean up old images
           docker image prune -f
@@ -53,7 +53,7 @@ jobs:
           docker load < yoga-app.tar.gz
           
           # Start services
-          docker-compose -f docker-compose.lightweight.yml up -d
+          docker-compose up -d
           
           # Wait for services to be healthy
           sleep 30
