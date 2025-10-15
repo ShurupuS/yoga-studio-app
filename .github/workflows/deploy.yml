@@ -35,16 +35,6 @@ jobs:
       run: |
         docker save yoga-app:latest | gzip > yoga-app.tar.gz
         
-    - name: Upload Docker image to VPS
-      uses: appleboy/scp-action@v0.1.4
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USER }}
-        key: ${{ secrets.VPS_SSH_KEY }}
-        port: ${{ secrets.VPS_PORT || '22' }}
-        source: "yoga-app.tar.gz"
-        target: "/opt/yoga-studio/"
-        
     - name: Deploy to VPS
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -53,32 +43,51 @@ jobs:
         key: ${{ secrets.VPS_SSH_KEY }}
         port: ${{ secrets.VPS_PORT || '22' }}
         script: |
+          # Debug: Check if we can connect
+          echo "=== SSH Connection Test ==="
+          whoami
+          pwd
+          ls -la
+          
+          # Debug: Check Docker
+          echo "=== Docker Status ==="
+          docker --version
+          docker-compose --version
+          
+          # Debug: Check if app is running
+          echo "=== Current App Status ==="
+          docker ps -a | grep yoga || echo "No yoga containers found"
+          
           # Navigate to project directory
           cd /opt/yoga-studio
           
           # Pull latest changes
+          echo "=== Pulling latest changes ==="
           git pull origin main
           
           # Stop existing services
+          echo "=== Stopping existing services ==="
           docker-compose down || true
           
           # Clean up old images
+          echo "=== Cleaning up old images ==="
           docker image prune -f
           
-          # Load new image
-          docker load < yoga-app.tar.gz
+          # Build new image locally on VPS
+          echo "=== Building new image on VPS ==="
+          docker build -f backend/Dockerfile -t yoga-app:latest ./backend
           
           # Start services
+          echo "=== Starting services ==="
           docker-compose up -d
           
           # Wait for services to be healthy
+          echo "=== Waiting for services to be healthy ==="
           sleep 30
           
           # Check health
+          echo "=== Checking health ==="
           curl -f http://localhost:18080/actuator/health || exit 1
-          
-          # Clean up
-          rm -f yoga-app.tar.gz
         
     - name: Notify deployment status
       if: always()
