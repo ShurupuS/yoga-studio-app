@@ -120,6 +120,15 @@ mkdir -p /opt/yoga-studio/backups
 
 # Set up SSH key for GitHub Actions (only if not exists)
 print_status "Setting up SSH for GitHub Actions..."
+
+# Create github-actions user if it doesn't exist
+if ! id "github-actions" &>/dev/null; then
+    print_status "Creating github-actions user..."
+    useradd -m -s /bin/bash github-actions
+    usermod -aG docker github-actions
+    print_status "User github-actions created and added to docker group"
+fi
+
 if [ ! -d "/home/github-actions/.ssh" ]; then
     mkdir -p /home/github-actions/.ssh
     chown -R github-actions:github-actions /home/github-actions/.ssh
@@ -130,9 +139,9 @@ else
 fi
 
 print_warning "IMPORTANT: You need to add your SSH public key to GitHub Secrets!"
-print_warning "1. Generate SSH key pair: ssh-keygen -t rsa -b 4096 -C 'github-actions'"
-print_warning "2. Add private key to GitHub Secrets as VPS_SSH_KEY"
-print_warning "3. Add public key to authorized_keys on VPS"
+print_warning "1. Generate SSH key pair: sudo -u github-actions ssh-keygen -t rsa -b 4096 -C 'github-actions' -f /home/github-actions/.ssh/id_rsa"
+print_warning "2. Add private key to GitHub Secrets as VPS_SSH_KEY: sudo cat /home/github-actions/.ssh/id_rsa"
+print_warning "3. Add public key to authorized_keys: sudo cat /home/github-actions/.ssh/id_rsa.pub >> /home/github-actions/.ssh/authorized_keys"
 
 # Create systemd service for auto-restart (only if not exists)
 if [ ! -f "/etc/systemd/system/yoga-studio.service" ]; then
