@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/yoga_app
+    username: yoga_user
+    password: yoga_password
+  
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+logging:
+  level:
+    com.yoga.app: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: INFO
+
+
