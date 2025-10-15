@@ -20,8 +20,8 @@ class CustomUserDetailsService(
         return UserPrincipal(
             id = user.id,
             email = user.email,
-            password = user.password,
-            authorities = listOf(SimpleGrantedAuthority("ROLE_${user.role.name}")),
+            userPassword = user.password,
+            userAuthorities = listOf(SimpleGrantedAuthority("ROLE_${user.role.name}")),
             user = user
         )
     }
@@ -30,14 +30,14 @@ class CustomUserDetailsService(
 class UserPrincipal(
     val id: Long,
     val email: String,
-    val password: String,
-    val authorities: Collection<SimpleGrantedAuthority>,
+    private val userPassword: String,
+    private val userAuthorities: Collection<SimpleGrantedAuthority>,
     val user: User
 ) : UserDetails {
     
-    override fun getAuthorities(): Collection<SimpleGrantedAuthority> = authorities
+    override fun getAuthorities(): Collection<SimpleGrantedAuthority> = userAuthorities
     
-    override fun getPassword(): String = password
+    override fun getPassword(): String = userPassword
     
     override fun getUsername(): String = email
     

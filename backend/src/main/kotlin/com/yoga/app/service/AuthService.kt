@@ -8,6 +8,7 @@ import com.yoga.app.entity.User
 import com.yoga.app.entity.UserRole
 import com.yoga.app.repository.UserRepository
 import com.yoga.app.security.JwtService
+import com.yoga.app.security.CustomUserDetailsService
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -35,13 +36,7 @@ class AuthService(
         )
         
         val savedUser = userRepository.save(user)
-        val token = jwtService.generateToken(CustomUserDetailsService.UserPrincipal(
-            id = savedUser.id,
-            email = savedUser.email,
-            password = savedUser.password,
-            authorities = listOf(org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_${savedUser.role.name}")),
-            user = savedUser
-        ))
+        val token = jwtService.generateToken(savedUser)
         
         return AuthResponse(
             accessToken = token,
@@ -57,13 +52,7 @@ class AuthService(
         val user = userRepository.findByEmail(request.email)
             ?: throw IllegalArgumentException("User not found")
         
-        val token = jwtService.generateToken(CustomUserDetailsService.UserPrincipal(
-            id = user.id,
-            email = user.email,
-            password = user.password,
-            authorities = listOf(org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_${user.role.name}")),
-            user = user
-        ))
+        val token = jwtService.generateToken(user)
         
         return AuthResponse(
             accessToken = token,

@@ -50,8 +50,7 @@ class JwtService {
         return extractExpiration(token).before(Date())
     }
     
-    fun generateToken(userDetails: UserDetails): String {
-        val user = userDetails as User
+    fun generateToken(user: User): String {
         return createToken(mapOf("role" to user.role.name), user.email)
     }
     
