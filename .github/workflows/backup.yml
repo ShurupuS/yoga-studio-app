@@ -1,0 +1,38 @@
+name: Database Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Create database backup
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: ${{ secrets.VPS_PORT }}
+        script: |
+          # Create backup directory if it doesn't exist
+          mkdir -p /opt/yoga-studio/backups
+          
+          # Create database backup
+          docker exec yoga_postgres pg_dump -U yoga_user yoga_app > /opt/yoga-studio/backups/yoga_app_$(date +%Y%m%d_%H%M%S).sql
+          
+          # Keep only last 7 days of backups
+          find /opt/yoga-studio/backups -name "yoga_app_*.sql" -mtime +7 -delete
+          
+          # Compress old backups
+          find /opt/yoga-studio/backups -name "yoga_app_*.sql" -mtime +1 -exec gzip {} \;
+          
+    - name: Upload backup to GitHub
+      uses: actions/upload-artifact@v3
+      with:
+        name: database-backup-${{ github.run_number }}
+        path: /opt/yoga-studio/backups/
+        retention-days: 30

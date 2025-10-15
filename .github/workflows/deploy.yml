@@ -1,0 +1,85 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build application
+      run: |
+        cd backend
+        ./gradlew build -x test
+        
+    - name: Build Docker image
+      run: |
+        docker build -f backend/Dockerfile.lightweight -t yoga-app:latest ./backend
+        
+    - name: Save Docker image
+      run: |
+        docker save yoga-app:latest | gzip > yoga-app.tar.gz
+        
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: ${{ secrets.VPS_PORT }}
+        script: |
+          # Navigate to project directory
+          cd /opt/yoga-studio
+          
+          # Pull latest changes
+          git pull origin main
+          
+          # Stop existing services
+          docker-compose -f docker-compose.lightweight.yml down || true
+          
+          # Clean up old images
+          docker image prune -f
+          
+          # Load new image
+          docker load < yoga-app.tar.gz
+          
+          # Start services
+          docker-compose -f docker-compose.lightweight.yml up -d
+          
+          # Wait for services to be healthy
+          sleep 30
+          
+          # Check health
+          curl -f http://localhost:18080/actuator/health || exit 1
+          
+          # Clean up
+          rm -f yoga-app.tar.gz
+          
+    - name: Upload Docker image to VPS
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: ${{ secrets.VPS_PORT }}
+        source: "yoga-app.tar.gz"
+        target: "/opt/yoga-studio/"
+        
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ ${{ job.status }} == 'success' ]; then
+          echo "✅ Deployment successful!"
+          echo "🌐 App available at: http://${{ secrets.VPS_HOST }}:18080"
+        else
+          echo "❌ Deployment failed!"
+        fi

@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: yoga_postgres
+    environment:
+      POSTGRES_DB: yoga_app
+      POSTGRES_USER: yoga_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-yoga_secure_password_123}
+    ports:
+      - "15432:5432"  # Альтернативный порт для PostgreSQL
+    volumes:
+      - yoga_postgres_data:/var/lib/postgresql/data
+    networks:
+      - yoga_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yoga_user -d yoga_app"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: yoga_redis
+    ports:
+      - "16379:6379"  # Альтернативный порт для Redis
+    volumes:
+      - yoga_redis_data:/data
+    networks:
+      - yoga_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: yoga_app
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/yoga_app
+      SPRING_DATASOURCE_USERNAME: yoga_user
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-yoga_secure_password_123}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+    ports:
+      - "18080:8080"  # Альтернативный порт для приложения
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - yoga_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+volumes:
+  yoga_postgres_data:
+  yoga_redis_data:
+
+networks:
+  yoga_network:
+    driver: bridge
