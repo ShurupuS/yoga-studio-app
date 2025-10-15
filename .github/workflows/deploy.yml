@@ -35,6 +35,16 @@ jobs:
       run: |
         docker save yoga-app:latest | gzip > yoga-app.tar.gz
         
+    - name: Upload Docker image to VPS
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: ${{ secrets.VPS_PORT || '22' }}
+        source: "yoga-app.tar.gz"
+        target: "/opt/yoga-studio/"
+        
     - name: Deploy to VPS
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -69,16 +79,6 @@ jobs:
           
           # Clean up
           rm -f yoga-app.tar.gz
-          
-    - name: Upload Docker image to VPS
-      uses: appleboy/scp-action@v0.1.4
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USER }}
-        key: ${{ secrets.VPS_SSH_KEY }}
-        port: ${{ secrets.VPS_PORT || '22' }}
-        source: "yoga-app.tar.gz"
-        target: "/opt/yoga-studio/"
         
     - name: Notify deployment status
       if: always()
