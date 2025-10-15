@@ -19,6 +19,7 @@ jobs:
     - name: Build application
       run: |
         cd backend
+        chmod +x gradlew
         ./gradlew build -x test
         
     - name: Build Docker image
