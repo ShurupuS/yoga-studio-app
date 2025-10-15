@@ -59,7 +59,7 @@ data class Attendance(
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id", nullable = false)
-    val class: Class,
+    val `class`: Class,
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

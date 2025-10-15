@@ -35,7 +35,13 @@ class AuthService(
         )
         
         val savedUser = userRepository.save(user)
-        val token = jwtService.generateToken(savedUser)
+        val token = jwtService.generateToken(CustomUserDetailsService.UserPrincipal(
+            id = savedUser.id,
+            email = savedUser.email,
+            password = savedUser.password,
+            authorities = listOf(org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_${savedUser.role.name}")),
+            user = savedUser
+        ))
         
         return AuthResponse(
             accessToken = token,
@@ -51,7 +57,13 @@ class AuthService(
         val user = userRepository.findByEmail(request.email)
             ?: throw IllegalArgumentException("User not found")
         
-        val token = jwtService.generateToken(user)
+        val token = jwtService.generateToken(CustomUserDetailsService.UserPrincipal(
+            id = user.id,
+            email = user.email,
+            password = user.password,
+            authorities = listOf(org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_${user.role.name}")),
+            user = user
+        ))
         
         return AuthResponse(
             accessToken = token,

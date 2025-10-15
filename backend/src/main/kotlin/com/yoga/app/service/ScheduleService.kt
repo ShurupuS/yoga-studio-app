@@ -110,7 +110,7 @@ class ScheduleService(
         
         val attendance = Attendance(
             client = client,
-            class = clazz,
+            `class` = clazz,
             status = request.status,
             notes = request.notes
         )
@@ -135,7 +135,7 @@ class ScheduleService(
         val savedAttendance = attendanceRepository.save(updatedAttendance)
         
         // Update class capacity
-        updateClassCapacity(attendance.class.id)
+        updateClassCapacity(attendance.`class`.id)
         
         return AttendanceDto.from(savedAttendance)
     }
@@ -147,7 +147,7 @@ class ScheduleService(
         attendanceRepository.delete(attendance)
         
         // Update class capacity
-        updateClassCapacity(attendance.class.id)
+        updateClassCapacity(attendance.`class`.id)
     }
     
     private fun updateClassCapacity(classId: Long) {

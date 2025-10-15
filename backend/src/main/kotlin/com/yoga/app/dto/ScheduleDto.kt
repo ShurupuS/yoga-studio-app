@@ -55,9 +55,9 @@ data class AttendanceDto(
                 id = attendance.id,
                 clientId = attendance.client.id,
                 clientName = attendance.client.name,
-                classId = attendance.class.id,
-                className = attendance.class.name,
-                classStartTime = attendance.class.startTime,
+                classId = attendance.`class`.id,
+                className = attendance.`class`.name,
+                classStartTime = attendance.`class`.startTime,
                 status = attendance.status,
                 notes = attendance.notes,
                 createdAt = attendance.createdAt

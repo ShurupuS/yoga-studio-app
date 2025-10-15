@@ -26,7 +26,7 @@ class ReportService(
         val attendances = if (request.clientId != null) {
             attendanceRepository.findByClientId(request.clientId, org.springframework.data.domain.Pageable.unpaged())
                 .content
-                .filter { it.class.startTime >= request.startDate && it.class.startTime <= request.endDate }
+                .filter { it.`class`.startTime >= request.startDate && it.`class`.startTime <= request.endDate }
         } else {
             attendanceRepository.findAttendancesInDateRange(request.startDate, request.endDate)
         }
@@ -119,7 +119,7 @@ class ReportService(
         } else 0.0
         
         val classAttendanceMap = classes.associateWith { clazz ->
-            attendances.count { it.class.id == clazz.id && it.status == AttendanceStatus.PRESENT }
+            attendances.count { it.`class`.id == clazz.id && it.status == AttendanceStatus.PRESENT }
         }
         
         val mostPopularClass = classAttendanceMap.maxByOrNull { it.value }?.key?.name
